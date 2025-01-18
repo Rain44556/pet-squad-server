@@ -12,7 +12,6 @@ app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.0czr5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -29,6 +28,27 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    
+
+
+    //DBcollections
+    const usersCollection = client.db('petsAdoptionDB').collection('users');
+    const petsCollection = client.db('petsAdoptionDB').collection('pets');
+  
+    //------Users end points-----------
+    app.post('/users', async (req, res) => {
+      const newUser = req.body;
+      const result = await usersCollection.insertOne(newUser);
+      res.send(result);
+    })
+
+      //--------pets end points---------
+    app.post('/pets', async (req, res) => {
+      const newPet = req.body;
+      const result = await petsCollection.insertOne(newPet);
+      res.send(result);
+    })
+  
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
