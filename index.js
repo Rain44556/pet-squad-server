@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 
@@ -84,6 +84,13 @@ async function run() {
     app.post('/pets', async (req, res) => {
       const petData = req.body;
       const result = await petsCollection.insertOne(petData);
+      res.send(result);
+    })
+
+    app.delete('/pets/:id', async (req, res) =>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await petsCollection.deleteOne(query);
       res.send(result);
     })
 
