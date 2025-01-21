@@ -75,9 +75,15 @@ async function run() {
     })
 
     //--------pets end points---------
+    app.get('/pets', async (req, res) =>{
+      const cursor = petsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.post('/pets', async (req, res) => {
-      const newPet = req.body;
-      const result = await petsCollection.insertOne(newPet);
+      const petData = req.body;
+      const result = await petsCollection.insertOne(petData);
       res.send(result);
     })
 
