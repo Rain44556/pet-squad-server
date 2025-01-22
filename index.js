@@ -37,7 +37,7 @@ async function run() {
     const petsCollection = client.db('petsAdoptionDB').collection('pets');
 
 
-    //------------------jwt related API-----------------
+    //------------------jwt API-----------------
     app.post('/jwt', async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,
@@ -61,6 +61,18 @@ async function run() {
       })
     }
 
+        //------------verify admin ---------//
+        const verifyAdmin = async (req, res, next) => {
+          const email = req.decoded.email;
+          const query = { email: email };
+          const user = await usersCollection.findOne(query);
+          const isAdmin = user?.role === 'admin';
+          if (!isAdmin) {
+            return res.status(403).send({ message: 'forbidden access' });
+          }
+          next();
+        }
+
 
     //------Users end points-----------
     app.post('/users', async (req, res) => {
@@ -76,14 +88,41 @@ async function run() {
 
     //--------pets end points---------
     app.get('/pets', async (req, res) =>{
+      // return res.status(401).send({ message: 'unauthorized access' });
       const cursor = petsCollection.find();
       const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/pets/:id', async (req, res) =>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await petsCollection.findOne(query);
       res.send(result);
     })
 
     app.post('/pets', async (req, res) => {
       const petData = req.body;
       const result = await petsCollection.insertOne(petData);
+      res.send(result);
+    })
+
+    app.patch('/pets/:id', async (req, res) =>{
+      const id = req.params.id;
+      const data = req.body;
+      const filter = {_id: new ObjectId(id)}
+      const updatedPet = {
+        $set: {
+          image: data.image,
+          name: data.name, 
+          age: data.age, 
+          category: data.category, 
+          location: data.location, 
+          shortDescription: data.shortDescription, 
+          longDescription: data.longDescription
+        }
+      }
+      const result = await petsCollection.updateOne(filter, updatedPet);
       res.send(result);
     })
 
