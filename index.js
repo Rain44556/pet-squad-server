@@ -42,7 +42,7 @@ async function run() {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '1h' });
-        res.send({ token });
+      res.send({ token });
     })
 
     //-----------verify token----------------- 
@@ -61,17 +61,17 @@ async function run() {
       })
     }
 
-        //------------verify admin ---------//
-        const verifyAdmin = async (req, res, next) => {
-          const email = req.decoded.email;
-          const query = { email: email };
-          const user = await usersCollection.findOne(query);
-          const isAdmin = user?.role === 'admin';
-          if (!isAdmin) {
-            return res.status(403).send({ message: 'forbidden access' });
-          }
-          next();
-        }
+    //------------verify admin ---------//
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const isAdmin = user?.role === 'admin';
+      if (!isAdmin) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      next();
+    }
 
 
     //------Users end points-----------
@@ -87,14 +87,22 @@ async function run() {
     })
 
     //--------pets end points---------
-    app.get('/pets', async (req, res) =>{
+    app.get('/pets', async (req, res) => {
       // return res.status(401).send({ message: 'unauthorized access' });
       const cursor = petsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     })
 
-    app.get('/pets/:id', async (req, res) =>{
+    app.get('/pets/isNotAdopted', async (req, res) => {
+      const  filter = {adopted: "false"};
+      const cursor = petsCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+
+    app.get('/pets/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await petsCollection.findOne(query);
@@ -107,18 +115,18 @@ async function run() {
       res.send(result);
     })
 
-    app.patch('/pets/:id', async (req, res) =>{
+    app.patch('/pets/:id', async (req, res) => {
       const id = req.params.id;
       const data = req.body;
-      const filter = {_id: new ObjectId(id)}
+      const filter = { _id: new ObjectId(id) }
       const updatedPet = {
         $set: {
           image: data.image,
-          name: data.name, 
-          age: data.age, 
-          category: data.category, 
-          location: data.location, 
-          shortDescription: data.shortDescription, 
+          name: data.name,
+          age: data.age,
+          category: data.category,
+          location: data.location,
+          shortDescription: data.shortDescription,
           longDescription: data.longDescription
         }
       }
@@ -126,12 +134,13 @@ async function run() {
       res.send(result);
     })
 
-    app.delete('/pets/:id', async (req, res) =>{
+    app.delete('/pets/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await petsCollection.deleteOne(query);
       res.send(result);
     })
+
 
   } finally {
     // Ensures that the client will close when you finish/error
