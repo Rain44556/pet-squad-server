@@ -95,8 +95,9 @@ async function run() {
     })
 
     app.get('/pets/isNotAdopted', async (req, res) => {
+      const { sort = "date and time" } = req.query;
       const  filter = {adopted: "false"};
-      const cursor = petsCollection.find(filter);
+      const cursor = petsCollection.find(filter).sort({ [sort]: -1 });
       const result = await cursor.toArray();
       res.send(result);
     })
