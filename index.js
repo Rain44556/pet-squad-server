@@ -35,6 +35,7 @@ async function run() {
     //DBcollections
     const usersCollection = client.db('petsAdoptionDB').collection('users');
     const petsCollection = client.db('petsAdoptionDB').collection('pets');
+    const adoptPetsCollection = client.db('petsAdoptionDB').collection('adoptPets');
 
 
     //------------------jwt API-----------------
@@ -139,6 +140,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await petsCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    //----------adoption---------
+    app.post('/adoption', async (req, res) => {
+      const adoptData = req.body;
+      const result = await adoptPetsCollection.insertOne(adoptData);
       res.send(result);
     })
 
