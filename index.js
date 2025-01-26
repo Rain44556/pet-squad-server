@@ -81,7 +81,7 @@ async function run() {
       const query = { email: newUser.email }
       const userAlreadyIn = await usersCollection.findOne(query);
       if (userAlreadyIn) {
-        return res.send({ message: 'user already exist', insertedId: null })
+        return res.send(userAlreadyIn)
       }
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
@@ -91,6 +91,14 @@ async function run() {
     app.get('/pets', async (req, res) => {
       // return res.status(401).send({ message: 'unauthorized access' });
       const cursor = petsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/pets/myPets', async (req, res) => {
+      const email = req.query.email;
+      const query = {ownerEmail: email}
+      const cursor = petsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -148,6 +156,51 @@ async function run() {
       const adoptData = req.body;
       const result = await adoptPetsCollection.insertOne(adoptData);
       res.send(result);
+    })
+
+    app.get('/adoption/request', async(req, res) =>{
+      const email = req.query.email;
+      const query = {ownerEmail: email};
+      let result =  adoptPetsCollection.find(query);
+      result = await result.toArray()
+      res.send(result)
+     
+    })
+
+    app.get('/adoption/myRequest', async(req, res) =>{
+      const email = req.query.email;
+      const query = {adopterEmail: email};
+      let result =  adoptPetsCollection.find(query);
+      result = await result.toArray()
+      res.send(result)
+     
+    })
+
+    app.put('/adoption/update/:id', async (req, res) => {
+     const id = req.params.id;
+     const command = req.body.command;
+    //  console.log("i am in", command)
+      if(command === "accept"){
+        const adoptionQuery = {_id: new ObjectId(id)}
+        const adoptionRequest = await adoptPetsCollection.findOne(adoptionQuery);
+        const {petId, adopterEmail} = adoptionRequest;
+        // console.log(adoptionRequest);
+        const filter = {_id: new ObjectId(petId)}
+        const deleteFilter = {petId}
+        const updatePetsData = {
+          $set: {
+            adopted: 'true',
+            ownerEmail: adopterEmail,
+        }}
+        const result = await petsCollection.updateOne(filter, updatePetsData);
+        // console.log(result);
+        const deleteAdoption = await adoptPetsCollection.deleteMany(deleteFilter);
+      res.send(deleteAdoption);
+      }else{
+        const adoptionQuery = {_id: new ObjectId(id)}
+        const deleteRequest = await adoptPetsCollection.deleteOne(adoptionQuery);
+        res.send(deleteRequest);
+      }
     })
 
 
