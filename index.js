@@ -36,6 +36,7 @@ async function run() {
     const usersCollection = client.db('petsAdoptionDB').collection('users');
     const petsCollection = client.db('petsAdoptionDB').collection('pets');
     const adoptPetsCollection = client.db('petsAdoptionDB').collection('adoptPets');
+    const donationCampaignCollection = client.db('petsAdoptionDB').collection('donations');
 
 
     //------------------jwt API-----------------
@@ -201,6 +202,13 @@ async function run() {
         const deleteRequest = await adoptPetsCollection.deleteOne(adoptionQuery);
         res.send(deleteRequest);
       }
+    })
+
+     //----------donation campaigns---------
+     app.post('/donation', async (req, res) => {
+      const donationData = req.body;
+      const result = await donationCampaignCollection.insertOne(donationData);
+      res.send(result);
     })
 
 
