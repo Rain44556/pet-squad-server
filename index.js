@@ -36,7 +36,8 @@ async function run() {
     const usersCollection = client.db('petsAdoptionDB').collection('users');
     const petsCollection = client.db('petsAdoptionDB').collection('pets');
     const adoptPetsCollection = client.db('petsAdoptionDB').collection('adoptPets');
-    const donationCampaignCollection = client.db('petsAdoptionDB').collection('donations');
+    const donationCampaignCollection = client.db('petsAdoptionDB').collection('donationsCampaign');
+    const donationCollection = client.db('petsAdoptionDB').collection('donations');
 
 
     //------------------jwt API-----------------
@@ -205,12 +206,51 @@ async function run() {
     })
 
      //----------donation campaigns---------
-     app.post('/donation', async (req, res) => {
+     app.get('/donationCampaign', async (req, res) => {
+      const cursor = donationCampaignCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/donationCampaign/myDonationCampaign', async (req, res) => {
+      const email = req.query.email;
+      const filter = {campaignOwnerEmail: email};
+      const cursor = donationCampaignCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.get('/donationCampaign/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await donationCampaignCollection.findOne(query);
+      res.send(result);
+    })
+
+
+     app.post('/donationCampaign', async (req, res) => {
       const donationData = req.body;
       const result = await donationCampaignCollection.insertOne(donationData);
       res.send(result);
     })
 
+    app.put('/donationCampaign/:id', async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const filter = {_id: new ObjectId(id)}
+      const update = {
+        $set: {
+          isPaused: data.isPaused,
+          petName: data.petName, 
+          amount: data.amount, 
+          lastDate: data.lastDate,
+          shortDescription: data.shortDescription, 
+          longDescription: data.longDescription
+        }
+      }
+      const result = await donationCampaignCollection.updateOne(filter,update);
+      res.send(result);
+    })
 
   } finally {
     // Ensures that the client will close when you finish/error
