@@ -207,7 +207,8 @@ async function run() {
 
      //----------donation campaigns---------
      app.get('/donationCampaign', async (req, res) => {
-      const cursor = donationCampaignCollection.find();
+      const {sort  = "date and time"} = req.query;
+      const cursor = donationCampaignCollection.find().sort({[sort]: -1});
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -242,15 +243,17 @@ async function run() {
         $set: {
           isPaused: data.isPaused,
           petName: data.petName, 
-          amount: data.amount, 
-          lastDate: data.lastDate,
-          shortDescription: data.shortDescription, 
-          longDescription: data.longDescription
+          amount: data.amount,
         }
       }
       const result = await donationCampaignCollection.updateOne(filter,update);
       res.send(result);
     })
+
+
+
+
+    // const  [,,refetch] = useDonation();
 
   } finally {
     // Ensures that the client will close when you finish/error
