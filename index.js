@@ -79,6 +79,29 @@ async function run() {
 
 
     //------Users end points-----------
+
+    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+
+    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
+
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin';
+      }
+      res.send({ admin });
+    })
+
+
     app.post('/users', async (req, res) => {
       const newUser = req.body;
       const query = { email: newUser.email }
@@ -87,6 +110,18 @@ async function run() {
         return res.send(userAlreadyIn)
       }
       const result = await usersCollection.insertOne(newUser);
+      res.send(result);
+    })
+
+    app.patch('/users/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateRole = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updateRole);
       res.send(result);
     })
 
