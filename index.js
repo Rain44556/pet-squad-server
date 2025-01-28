@@ -252,7 +252,8 @@ async function run() {
     })
 
 
-// stripe payment intent
+//-----------stripe payment intent and my donation end point------------
+
 app.post('/create-payment-intent', async (req, res) => {
   const { amount } = req.body;
   const donateAmount = parseInt(amount * 100);
@@ -268,6 +269,25 @@ app.post('/create-payment-intent', async (req, res) => {
     clientSecret: paymentIntent.client_secret
   })
 });
+
+app.get('/myDonation/:email', async (req, res) => {
+  const email = req.params.email;
+  const query = {donorEmail: email }
+  // if (req.params.email !== req.decoded.email) {
+  //   return res.status(403).send({ message: 'forbidden access' });
+  // }
+  const result = await donationCollection.find(query).toArray();
+  res.send(result);
+})
+
+
+app.post('/myDonation', async (req, res) => {
+  const donationData = req.body;
+  const donateResult = await donationCollection.insertOne(donationData);
+  console.log('donate info', donationData);
+  res.send({ donateResult });
+})
+
 
   } finally {
     // Ensures that the client will close when you finish/error
