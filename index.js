@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe =  require('stripe')(process.env.SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
@@ -251,9 +252,22 @@ async function run() {
     })
 
 
+// stripe payment intent
+app.post('/create-payment-intent', async (req, res) => {
+  const { amount } = req.body;
+  const donateAmount = parseInt(amount * 100);
+  console.log(amount, 'amount inside the intent')
 
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: donateAmount,
+    currency: 'usd',
+    payment_method_types: ['card']
+  });
 
-    // const  [,,refetch] = useDonation();
+  res.send({
+    clientSecret: paymentIntent.client_secret
+  })
+});
 
   } finally {
     // Ensures that the client will close when you finish/error
