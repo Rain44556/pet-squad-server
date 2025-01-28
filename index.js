@@ -51,6 +51,7 @@ async function run() {
 
     //-----------verify token----------------- 
     const verifyToken = (req, res, next) => {
+      console.log("inside verify")
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -80,17 +81,15 @@ async function run() {
 
     //------Users end points-----------
 
-    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+    app.get('/users', async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
 
-    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+    app.get('/users/admin/:email', async (req, res) => {
       const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'forbidden access' })
-      }
+      // console.log("in admin")
 
       const query = { email: email };
       const user = await usersCollection.findOne(query);
@@ -182,6 +181,19 @@ async function run() {
       res.send(result);
     })
 
+    app.patch('/pets/adopt/:id', async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const filter = { _id: new ObjectId(id) }
+      const updatedPet = {
+        $set: {
+          adopted: data.adopted,
+        }
+      }
+      const result = await petsCollection.updateOne(filter, updatedPet);
+      res.send(result);
+    })
+
     app.delete('/pets/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
@@ -244,7 +256,8 @@ async function run() {
      //----------donation campaigns---------
      app.get('/donationCampaign', async (req, res) => {
       const {sort  = "date and time"} = req.query;
-      const cursor = donationCampaignCollection.find().sort({[sort]: -1});
+      const filter = {isPaused: "false",}
+      const cursor = donationCampaignCollection.find(filter).sort({[sort]: -1});
       const result = await cursor.toArray();
       res.send(result);
     })
@@ -321,6 +334,13 @@ app.post('/myDonation', async (req, res) => {
   const donateResult = await donationCollection.insertOne(donationData);
   console.log('donate info', donationData);
   res.send({ donateResult });
+})
+
+app.delete('/myDonation/refund/:id', async (req, res) => {
+  const id = req.params.id;
+  const filter = {_id: new ObjectId(id)}
+  const donateResult = await donationCollection.deleteOne(filter);
+  res.send(donateResult);
 })
 
 
